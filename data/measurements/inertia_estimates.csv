@@ -1,0 +1,4 @@
+component,value,unit,source,confidence,notes
+crankshaft_mass,14.475,kg,Renault Sport R3 assembly material,medium,Competition document basis; useful but not road-car-specific
+stock_flywheel_mass,5.3,kg,Renault specialist supplier comparisons,medium,Approximate OE flywheel comparison value
+target_total_rotating_inertia,0.052,kg_m2,derived_estimate,low_to_medium,Use as a sanity target; CE numeric scaling may require correlation
