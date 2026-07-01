@@ -1,12 +1,13 @@
 // Renault Clio 182 / F4R 738 reference project
 // Engine Simulator Community Edition v0.1.14A
 //
-// Milestone 1: known-good reference baseline.
-// Milestone 2.1: limiter-only full-throttle recovery experiment.
+// Milestone 3.0: first-pass intake-system correlation.
 //
-// This keeps the M2.0 geometry lock and changes only limiter cut duration. The aim
-// is to improve full-throttle blip recovery without disturbing start, idle, intake,
-// camshaft, exhaust or inertia behaviour.
+// This keeps the M2.0 hard geometry lock and begins replacing the inherited generic
+// intake values. The main change is reducing the oversized 4.5 L plenum to a more
+// plausible naturally aspirated 2.0L manifold volume. Idle plate and ignition are
+// deliberately left alone so we can see whether the intake model itself affects the
+// 4000 rpm/full-throttle return-to-idle stall.
 
 import "engine_sim.mr"
 
@@ -26,8 +27,6 @@ private node f4r_head {
     input intake_camshaft;
     input exhaust_camshaft;
     // Effective clearance volume for ~11.0:1 with 82.7 x 93.0 mm geometry.
-    // This is not only chamber-bowl volume; it includes the simulated effect of
-    // gasket, piston crown/reliefs and deck clearance.
     input chamber_volume: 50.0 * units.cc;
     input intake_runner_volume: 149.6 * units.cc;
     input intake_runner_cross_section_area: 10.0 * units.cm2 * 2.0;
@@ -120,7 +119,7 @@ public node f4r_reference_i4 {
     alias output __out: engine;
 
     engine engine(
-        name: "Renault Clio 182 F4R 738 Reference M2.1 Limiter",
+        name: "Renault Clio 182 F4R 738 Reference M3.0 Intake v1",
         starter_torque: 120 * units.lb_ft,
         starter_speed: 650 * units.rpm,
         redline: 7200 * units.rpm,
@@ -180,14 +179,16 @@ public node f4r_reference_i4 {
     )
 
     intake intake(
-        plenum_volume: 4.5 * units.L,
-        plenum_cross_section_area: 10.0 * units.cm2,
-        intake_flow_rate: k_carb(720.0),
-        runner_flow_rate: k_carb(300.0),
-        runner_length: 10.0 * units.inch,
+        // First-pass stock-manifold correlation. The old 4.5 L plenum was a
+        // stability value, not a plausible stock Clio manifold value.
+        plenum_volume: 2.2 * units.L,
+        plenum_cross_section_area: 24.0 * units.cm2,
+        intake_flow_rate: k_carb(680.0),
+        runner_flow_rate: k_carb(260.0),
+        runner_length: 11.0 * units.inch,
         idle_flow_rate: k_carb(0.0),
         idle_throttle_plate_position: 0.9989,
-        velocity_decay: 0.08
+        velocity_decay: 0.16
     )
 
     exhaust_system_parameters es_params(
@@ -305,7 +306,7 @@ public node f4r_reference_i4 {
     ignition_module ignition_module(
         timing_curve: timing_curve,
         rev_limit: 7200 * units.rpm,
-        limiter_duration: 0.045)
+        limiter_duration: 0.08)
     ignition_module
             .connect_wire(wires.wire1, (0.0 / 4.0) * cycle)
             .connect_wire(wires.wire2, (1.0 / 4.0) * cycle)
